@@ -7,24 +7,11 @@ if [ "$(id -u)" -eq 0 ]; then
     exit 1
 fi
 
-# 设置默认的代理 URL
-_reproxy_url=${REPROXY_URL:-"https://mirror.ghproxy.com/"}
-if [ "${_reproxy_url: -1}" != "/" ]; then
-    _reproxy_url="${_reproxy_url}/"
-fi
 
 # 检查网络连接选择镜像站
 function can_connect_to_internet() {
-    if [ $(curl -sL --max-time 3 "https://github.com" | wc -c) -gt 0 ]; then
         echo "0"
         return
-    fi
-    if [ $(curl -sL --max-time 3 "${_reproxy_url}https://github.com/Mzdyl/LiteLoaderQQNT_Install/releases/latest/download/install_mac.sh" | wc -c) -gt 0 ]; then
-        echo "1"
-        return
-    fi
-    echo "2"
-    return
 }
 
 # 下载和解压函数
@@ -179,48 +166,6 @@ else
 require('$HOME/Library/Containers/com.tencent.qq/Data/Documents/LiteLoader');\
 " -e '$a\' index.js
     echo "已修补 index.js。"
-fi
-
-targetFolder="$HOME/Library/Containers/com.tencent.qq/Data/Documents/LiteLoader/plugins"
-pluginStoreFolder="$targetFolder/list-viewer"
-response=$(curl -s https://api.github.com/repos/ltxhhz/LL-plugin-list-viewer/releases/latest)
-version=$(echo "$response" | grep 'tag_name' | cut -d'"' -f4 )
-download_url=https://github.com/ltxhhz/LL-plugin-list-viewer/releases/download/$version/list-viewer.zip
-
-if [ -e "$targetFolder" ]; then
-    if [ -e "$pluginStoreFolder" ]; then
-        echo "插件列表查看已存在"
-    else
-        echo "正在拉取最新版本的插件列表查看..."
-        if [ "$(can_connect_to_internet)" -eq 0 ]; then
-            echo "正在拉取最新版本的Github仓库"
-            download_and_extract "${download_url}" list-viewer
-        else
-            echo "正在拉取最新版本镜像仓库"
-            download_and_extract "${_reproxy_url}${download_url}" list-viewer
-        fi
-        if [ $? -eq 0 ]; then
-            echo "插件商店安装成功"
-        else
-            echo "插件商店安装失败"
-        fi
-    fi
-else
-    mkdir -p "$targetFolder"
-    echo "正在拉取最新版本的插件列表查看..."
-    cd "$targetFolder" || exit 1
-    if [ "$(can_connect_to_internet)" -eq 0 ]; then
-        echo "正在拉取最新版本的Github仓库"
-        download_and_extract "${download_url}" list-viewer
-    else
-        echo "正在拉取最新版本镜像仓库"
-        download_and_extract "${_reproxy_url}${download_url}" list-viewer
-    fi
-    if [ $? -eq 0 ]; then
-        echo "插件商店安装成功"
-    else
-        echo "插件商店安装失败"
-    fi
 fi
 
 # 清理临时文件
